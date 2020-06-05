@@ -24,11 +24,6 @@ matrix:
 
     - name: "podman  Python 3.7 on bionic amd64" #OK
       dist: bionic
-      # addons:
-      #      snaps:
-      #        - name: podman #Command 'podman' not found
-      #          confinement: devmode
-      #          channel: edge
       language: python
       python: 3.7
       before_install:
@@ -50,44 +45,15 @@ matrix:
         - podman ps -a
         - podman pull alpine #Pull Alpine docker image
         - podman run --rm alpine uname -a
-        # - podman run --rm alpine uname -a docker.io/library/alpine /bin/sh apk update
-        # - podman  run -it  --rm docker.io/library/alpine /bin/sh && apk update && apk add vim && exit # interactive connection
         - podman pull ubuntu
+        - podman run --rm ubuntu /bin/echo "Hola podman"  #run a simple container using Ubuntu image which prints a message
         - podman pull centos:8
         - podman run --rm centos:8 uname -a
-        - podman run --rm ubuntu /bin/echo "Hola podman"  #run a simple container using Ubuntu image which prints a message
-        - podman run --rm ubuntu uname -a
-        #run a container in background (detached mode), use -d option
-        # - podman run -dt -p 8080:8080/tcp -e HTTPD_VAR_RUN=/var/run/httpd -e HTTPD_MAIN_CONF_D_PATH=/etc/httpd/conf.d \
-        #           -e HTTPD_MAIN_CONF_PATH=/etc/httpd/conf \
-        #           -e HTTPD_CONTAINER_SCRIPTS_PATH=/usr/share/container-scripts/httpd/ \
-        #           registry.fedoraproject.org/f29/httpd /usr/bin/run-httpd
-        # - podman search httpd #Searching in Podman
-        # - podman run -it ubuntu bash #access a container shell, use the options -it
         - podman ps #list creating and running containers
         - podman ps --all # To include stopped / exited containers
         - podman ps -a
         - podman images #lists all the images
         - ls -lai /var/lib/containers #Podman’s local repository
-        # - podman inspect 024a277cc474 #Inspecting Containers
-        # - podman stop eed30719cd37
-        # - podman rm eed30719cd37
-        # - podman rmi 785188cd988c
-        # - podman rmi docker.io/library/ubuntu
-        # - podman tag 7698f282e524 webserver
-        # - podman logs --latest
-        # - podman logs d2cdf0efb0dd #specify container ID
-        # - podman logs -f  d2cdf0efb0dd #follow the logs output in real-time
-        # - podman logs --follow=true --since 10m ContainerID
-        # - podman logs --tail 10 d2cdf0efb0dd #Show only last 10 lines in logs
-        # - podman top d2cdf0efb0dd #podman top to view container’s pids
-        #Migrate the container
-        # - podman container checkpoint <container_id> #Checkpointing a container stops the container while writing the state of all processes in the container to disk. This capability requires CRIU 3.11 or later installed on the system
-        # - podman container restore <container_id> #podman container restore <container_id>
-        # - podman container checkpoint <container_id> -e /tmp/checkpoint.tar.gz #First checkpoint the container on the source system
-        # - scp /tmp/checkpoint.tar.gz <destination_system>:/tmp #Copy it to the destination server
-        # - podman container restore -i /tmp/checkpoint.tar.gz #On the destination system, restore container
-        #Migrate the container
         - podman pod create --name web #create a pod called web,By default, the created pod will have a container called infra
         - podman pod list
         - podman ps -a --pod #The infra container is in sleep mode and its purpose is to hold the namespaces associated with the pod to allow podman to connect other containers to the pod
@@ -95,22 +61,12 @@ matrix:
         - podman ps -a --pod # pause containers!!
         - sudo podman pod create -p 8080:80 --name web1 #expose a port – root required for port binding
         - podman pod create --name webpod #create a pod called web,By default, the created pod will have a container called infra
-        # - podman run -dt --pod webpod -p 8080 nginx:latest # add a container to the pod
-        # - sudo podman rm --force $(podman ps -a -q) #remove all containers, both running and stopped use
         - podman pod list #The pod create command creates a pod with an infra container by default associated with it unless explicitly set with infra flag as false.
-        # - podman pod create --infra = false #Error: `podman pod create` takes no arguments
-        # - minikube start --driver=podman #Start a cluster using the podman driver
-        # - minikube config set driver podman #make docker the default driver
       after_success:
         - deactivate
 
     - name: "podman kubectl k8s Python 3.7 on bionic amd64" #OK
       dist: bionic
-      # addons:
-      #      snaps:
-      #        - name: podman #Command 'podman' not found
-      #          confinement: devmode
-      #          channel: edge
       language: python
       python: 3.7
       before_install:
@@ -144,22 +100,12 @@ matrix:
         - sudo podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
         - sudo podman ps #
         - curl http://localhost:8000
-        # - sudo podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
-        # - sudo kubectl create -f demo.yml #Podman to generate a service file
-        # - sudo kubectl get pods
-        # - sudo kubectl get svc
-        # - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
       after_success:
         - deactivate
 
-     # https://github.com/dhiltgen/docker-machine-kvm/releases
+
     - name: "podman machine qemu kvm libvirt Python 3.7 on xenial amd64" #OK
       dist: xenial
-      # addons:
-      #      snaps:
-      #        - name: podman #Command 'podman' not found
-      #          confinement: devmode
-      #          channel: edge
       language: python
       python: 3.7
       before_install:
@@ -175,19 +121,11 @@ matrix:
           curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/tmp/docker-machine && \
           sudo chmod +x /tmp/docker-machine && \
           sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
-        #/home/travis/.travis/functions: line 109: /usr/local/bin/docker-machine-driver-kvm: Permission denied
-        # - | # download the docker-machine-driver-kvm binary, putting it in your PATH
-        #   curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 > /usr/local/bin/docker-machine-driver-kvm \
-        #   chmod +x /usr/local/bin/docker-machine-driver-kvm
-        # - docker-machine create -d kvm machine01
       after_success:
         - deactivate
 
 #   # =============================================macOS=============================================
 
-    # need a supported Virtual Machine environment, such as VirtualBox or QEMU.  QEMU+KVM
-    #https://github.com/boot2podman/machine
-    #https://developers.redhat.com/blog/2020/02/12/podman-for-macos-sort-of/
     - name: "podman-machine podman virtualbox Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
       os: osx
       osx_image: xcode11.5
@@ -195,8 +133,6 @@ matrix:
       addons:
         homebrew:
           packages:
-            # - kubectl #kubernetes-cli 1.18.3
-            # - minikube #minikube 1.11.0
           casks: # Installing Casks
             - podman
           update: true
@@ -210,14 +146,6 @@ matrix:
         - |
           curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && \
           chmod +x /usr/local/bin/docker-machine
-        # - podman-machine create --virtualbox-boot2podman-url https://github.com/snowjet/boot2podman-fedora-iso/releases/download/d1bb19f/boot2podman-fedora.iso --virtualbox-memory="4096" --virtualbox-share-folder ~/Code:code fedbox
-        # - podman-machine ssh fedbox
-        # - podman-machine ssh fedbox
-        # - podman run -p 8080:80/tcp --rm httpd
-        # - podman-machine ip fedbox #In another terminal
-        # - curl http://192.168.99.122:8080 #In another terminal
-        # - podman-machine stop fedbox
-        # - podman-machine rm fedbox
       after_success:
         - deactivate
 
@@ -228,8 +156,6 @@ matrix:
       addons:
         homebrew:
           packages:
-            # - kubectl #kubernetes-cli 1.18.3
-            # - minikube #minikube 1.11.0
           casks: # Installing Casks
             - podman
           update: true
@@ -241,11 +167,6 @@ matrix:
       <<: *fleet_script_tasks
       script:
         - brew cask info podman
-        # - podman pull centos:8
-        # - podman run --rm centos:8 uname -a
-        # - podman run --rm ubuntu /bin/echo "Hola podman"  #run a simple container using Ubuntu image which prints a message
-        # - podman run -it fedora bash
-        # - podman run -p 8080:80/tcp --rm httpd
       after_success:
         - deactivate
 
@@ -257,7 +178,6 @@ matrix:
         homebrew:
           packages:
             - kubectl #kubernetes-cli 1.18.3
-            # - minikube #minikube 1.11.0
           casks: # Installing Casks
             - podman
           update: true
@@ -269,23 +189,13 @@ matrix:
       <<: *fleet_script_tasks
       script:
         - brew cask info podman
-        # - podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
-        # - podman ps #
-        # - curl http://localhost:8000
-        # - podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
-        # - kubectl create -f demo.yml #Podman to generate a service file
-        # - kubectl get pods
-        # - kubectl get svc
-        # - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
       after_success:
         - deactivate
 
 
-#   # =============================================windows=============================================
+# =============================================windows=============================================
 
-    #https://github.com/docker/machine/releases
-    #https://docs.travis-ci.com/user/reference/windows/#chocolatey
-    #https://github.com/boot2podman/podman-machine-driver-libvirt
+
     - name: "podman-machine  Python 3.8 on Windows"
       os: windows
       language: shell
