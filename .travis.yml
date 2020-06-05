@@ -146,8 +146,8 @@ matrix:
         - curl http://localhost:8000
         # - sudo podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
         # - sudo kubectl create -f demo.yml #Podman to generate a service file
-        - sudo kubectl get pods
-        - sudo kubectl get svc
+        # - sudo kubectl get pods
+        # - sudo kubectl get svc
         # - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
       after_success:
         - deactivate
