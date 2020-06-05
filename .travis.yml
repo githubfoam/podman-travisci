@@ -4,7 +4,6 @@ dist: bionic
 env:
   global:
   # auto vagrant installation
-
 notifications:
   slack:
     on_failure: always
@@ -22,13 +21,17 @@ matrix:
   fast_finish: true
   include:
 
-    - name: "podman  Python 3.7 on bionic amd64" #OK
+
+    #Podman - container (experimental)
+    #https://minikube.sigs.k8s.io/docs/drivers/
+    #https://minikube.sigs.k8s.io/docs/drivers/podman/
+    - name: "minikube podman latest  Python 3.7 on bionic amd64" #OK
       dist: bionic
-      # addons:
-      #      snaps:
-      #        - name: podman #Command 'podman' not found
-      #          confinement: devmode
-      #          channel: edge
+      addons:
+           snaps:
+             - name: minikube
+               confinement: strict
+               channel: stable
       language: python
       python: 3.7
       before_install:
@@ -37,80 +40,45 @@ matrix:
         - source ~venvpy3/bin/activate
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
+      # <<: *fleet_script_minikube_latest_tasks
       script:
         - . /etc/os-release
         - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
         - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
         - sudo apt-get update -qq
-        - sudo apt-get -qqy install podman slirp4netns
+        - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
         - podman info #his command displays the information related to the host such as the Kernel version, swap space used
-        - "podman build ." # build local image
-        - podman run  -p 80:80 -dit centos
-        - podman info --debug
-        - podman ps -a
-        - podman pull alpine #Pull Alpine docker image
-        - podman run --rm alpine uname -a
-        # - podman run --rm alpine uname -a docker.io/library/alpine /bin/sh apk update
-        # - podman  run -it  --rm docker.io/library/alpine /bin/sh && apk update && apk add vim && exit # interactive connection
-        - podman pull ubuntu
-        - podman pull centos:8
-        - podman run --rm centos:8 uname -a
-        - podman run --rm ubuntu /bin/echo "Hola podman"  #run a simple container using Ubuntu image which prints a message
-        - podman run --rm ubuntu uname -a
-        #run a container in background (detached mode), use -d option
-        # - podman run -dt -p 8080:8080/tcp -e HTTPD_VAR_RUN=/var/run/httpd -e HTTPD_MAIN_CONF_D_PATH=/etc/httpd/conf.d \
-        #           -e HTTPD_MAIN_CONF_PATH=/etc/httpd/conf \
-        #           -e HTTPD_CONTAINER_SCRIPTS_PATH=/usr/share/container-scripts/httpd/ \
-        #           registry.fedoraproject.org/f29/httpd /usr/bin/run-httpd
-        # - podman search httpd #Searching in Podman
-        # - podman run -it ubuntu bash #access a container shell, use the options -it
-        - podman ps #list creating and running containers
-        - podman ps --all # To include stopped / exited containers
-        - podman ps -a
+        - "podman build ."
         - podman images #lists all the images
-        - ls -lai /var/lib/containers #Podman’s local repository
-        # - podman inspect 024a277cc474 #Inspecting Containers
+        - sudo podman run  -p 80:80 -dit centos
+        - podman ps -a
         # - podman stop eed30719cd37
         # - podman rm eed30719cd37
         # - podman rmi 785188cd988c
-        # - podman rmi docker.io/library/ubuntu
-        # - podman tag 7698f282e524 webserver
-        # - podman logs --latest
-        # - podman logs d2cdf0efb0dd #specify container ID
-        # - podman logs -f  d2cdf0efb0dd #follow the logs output in real-time
-        # - podman logs --follow=true --since 10m ContainerID
-        # - podman logs --tail 10 d2cdf0efb0dd #Show only last 10 lines in logs
-        # - podman top d2cdf0efb0dd #podman top to view container’s pids
-        #Migrate the container
-        # - podman container checkpoint <container_id> #Checkpointing a container stops the container while writing the state of all processes in the container to disk. This capability requires CRIU 3.11 or later installed on the system
-        # - podman container restore <container_id> #podman container restore <container_id>
-        # - podman container checkpoint <container_id> -e /tmp/checkpoint.tar.gz #First checkpoint the container on the source system
-        # - scp /tmp/checkpoint.tar.gz <destination_system>:/tmp #Copy it to the destination server
-        # - podman container restore -i /tmp/checkpoint.tar.gz #On the destination system, restore container
-        #Migrate the container
-        - podman pod create --name web #create a pod called web,By default, the created pod will have a container called infra
-        - podman pod list
-        - podman ps -a --pod #The infra container is in sleep mode and its purpose is to hold the namespaces associated with the pod to allow podman to connect other containers to the pod
-        - podman run -dt --pod web alpine:latest top # add a container to the pod
-        - podman ps -a --pod # pause containers!!
-        - sudo podman pod create -p 8080:80 --name web1 #expose a port – root required for port binding
-        - podman pod create --name webpod #create a pod called web,By default, the created pod will have a container called infra
-        # - podman run -dt --pod webpod -p 8080 nginx:latest # add a container to the pod
-        # - sudo podman rm --force $(podman ps -a -q) #remove all containers, both running and stopped use
         - podman pod list #The pod create command creates a pod with an infra container by default associated with it unless explicitly set with infra flag as false.
         # - podman pod create --infra = false #Error: `podman pod create` takes no arguments
-        # - minikube start --driver=podman #Start a cluster using the podman driver
-        # - minikube config set driver podman #make docker the default driver
+        - podman pod list
+        - snap info --verbose minikube
+        - minikube version #minikube version: v0.8.0
+        # - minikube start --driver=podman #unknown flag: --driver
+        # - minikube start  vm-driver=podman
+        # - minikube config set driver podman #unknown command "config" for "minikube"
       after_success:
         - deactivate
 
-    - name: "podman kubectl k8s Python 3.7 on bionic amd64" #OK
+    #Podman - container (experimental)
+    #https://minikube.sigs.k8s.io/docs/drivers/
+    #https://minikube.sigs.k8s.io/docs/drivers/podman/
+    # https://kubernetes.io/docs/setup/learning-environment/minikube/
+    #https://kubernetes.io/docs/tasks/tools/install-minikube/
+    #https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux
+    - name: "minikube podman  containerd as the container runtime,  Python 3.7 on bionic amd64"
       dist: bionic
-      # addons:
-      #      snaps:
-      #        - name: podman #Command 'podman' not found
-      #          confinement: devmode
-      #          channel: edge
+      addons:
+           snaps:
+             - name: minikube
+               confinement: strict
+               channel: stable
       language: python
       python: 3.7
       before_install:
@@ -119,6 +87,7 @@ matrix:
         - source ~venvpy3/bin/activate
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
+      # <<: *fleet_script_minikube_latest_tasks
       script:
         - | #To check if virtualization is supported on Linux, run the following command and verify that the output is non-empty:
             set -eo pipefail #safety for script
@@ -130,36 +99,72 @@ matrix:
                   echo "===================================="
                   echo "virtualization is supported"
             fi
-        - | # Install kubectl
+        - |
           curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
           chmod +x ./kubectl && \
           sudo mv ./kubectl /usr/local/bin/kubectl &&
           kubectl version --client
+        - | #Install Minikube via direct download,add the Minikube executable to the path
+          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && \
+          chmod +x minikube && \
+          sudo mkdir -p /usr/local/bin/ && \
+          sudo install minikube /usr/local/bin/
         # Install podman
         - . /etc/os-release
         - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
         - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
         - sudo apt-get update -qq
         - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
-        - sudo podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
-        - sudo podman ps #
-        - curl http://localhost:8000
-        - sudo podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
-        - sudo kubectl create -f demo.yml #Podman to generate a service file
-        - sudo kubectl get pods
-        - sudo kubectl get svc
-        - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
+        - podman info #his command displays the information related to the host such as the Kernel version, swap space used
+        - "podman build ."
+        - podman images #lists all the images
+        - sudo podman run  -p 80:80 -dit centos
+        - podman ps -a
+        # - podman stop eed30719cd37
+        # - podman rm eed30719cd37
+        # - podman rmi 785188cd988c
+        - podman pod list #The pod create command creates a pod with an infra container by default associated with it unless explicitly set with infra flag as false.
+        # - podman pod create --infra = false #Error: `podman pod create` takes no arguments
+        - podman pod list
+        - snap info --verbose minikube
+        - minikube version #minikube version: v1.11.0
+        # - minikube config set driver podman #unknown command "config" for "minikube"
+        - docker pull gcr.io/k8s-minikube/kicbase:v0.0.10
+        - sudo podman network ls
+        # - | #Starting a cluster on alternative container runtimes, with containerd
+        #   minikube start \
+        #   --network-plugin=cni \
+        #   --enable-default-cni \
+        #   --container-runtime=containerd \
+        #   --bootstrapper=kubeadm
+        #   --driver=podman #--driver=podman: command not found
+        # - | #Starting a cluster on alternative container runtimes,use the extended version with containerd
+        #   minikube start \
+        #   --network-plugin=cni \
+        #   --enable-default-cni \
+        #   --extra-config=kubelet.container-runtime=remote \
+        #   --extra-config=kubelet.container-runtime-endpoint=unix:///run/containerd/containerd.sock \
+        #   --extra-config=kubelet.image-service-endpoint=unix:///run/containerd/containerd.sock \
+        #   --bootstrapper=kubeadm
+        #   --driver=podman
+
+
       after_success:
         - deactivate
 
-     # https://github.com/dhiltgen/docker-machine-kvm/releases
-    - name: "podman machine qemu kvm libvirt Python 3.7 on xenial amd64" #OK
-      dist: xenial
-      # addons:
-      #      snaps:
-      #        - name: podman #Command 'podman' not found
-      #          confinement: devmode
-      #          channel: edge
+    #Podman - container (experimental)
+    #https://minikube.sigs.k8s.io/docs/drivers/
+    #https://minikube.sigs.k8s.io/docs/drivers/podman/
+    # https://kubernetes.io/docs/setup/learning-environment/minikube/
+    #https://kubernetes.io/docs/tasks/tools/install-minikube/
+    #https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux
+    - name: "minikube podman  CRI-O as the container runtime,  Python 3.7 on bionic amd64"
+      dist: bionic
+      addons:
+           snaps:
+             - name: minikube
+               confinement: strict
+               channel: stable
       language: python
       python: 3.7
       before_install:
@@ -168,87 +173,80 @@ matrix:
         - source ~venvpy3/bin/activate
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
+      # <<: *fleet_script_minikube_latest_tasks
       script:
-        - sudo apt-get install -qqy libvirt-bin qemu-kvm #Install libvirt and qemu-kvm
-        #Install docker-machine
+        - | #To check if virtualization is supported on Linux, run the following command and verify that the output is non-empty:
+            set -eo pipefail #safety for script
+            if [[ $(egrep -c '(vmx|svm)' /proc/cpuinfo) == 0 ]]; then #check if virtualization is supported on Linux, xenial fails w 0, bionic works w 2
+                     echo "virtualization is not supported"
+            else
+                  echo "===================================="
+                  echo eval "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" 2>/dev/null
+                  echo "===================================="
+                  echo "virtualization is supported"
+            fi
         - |
-          curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/tmp/docker-machine && \
-          sudo chmod +x /tmp/docker-machine && \
-          sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
-        #/home/travis/.travis/functions: line 109: /usr/local/bin/docker-machine-driver-kvm: Permission denied
-        - | # download the docker-machine-driver-kvm binary, putting it in your PATH
-          curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 > /usr/local/bin/docker-machine-driver-kvm \
-          chmod +x /usr/bin/docker-machine-driver-kvm
-        - docker-machine create -d kvm machine01
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
+          chmod +x ./kubectl && \
+          sudo mv ./kubectl /usr/local/bin/kubectl &&
+          kubectl version --client
+        - | #Install Minikube via direct download,add the Minikube executable to the path
+          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && \
+          chmod +x minikube && \
+          sudo mkdir -p /usr/local/bin/ && \
+          sudo install minikube /usr/local/bin/
+        # Install podman
+        - . /etc/os-release
+        - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
+        - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
+        - sudo apt-get update -qq
+        - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
+        - podman info #his command displays the information related to the host such as the Kernel version, swap space used
+        - "podman build ."
+        - podman images #lists all the images
+        - sudo podman run  -p 80:80 -dit centos
+        - podman ps -a
+        # - podman stop eed30719cd37
+        # - podman rm eed30719cd37
+        # - podman rmi 785188cd988c
+        - podman pod list #The pod create command creates a pod with an infra container by default associated with it unless explicitly set with infra flag as false.
+        # - podman pod create --infra = false #Error: `podman pod create` takes no arguments
+        - podman pod list
+        # - snap info --verbose minikube
+        - minikube version #minikube version: v1.11.0
+        # - minikube config set driver podman #unknown command "config" for "minikube"
+        - sudo podman network ls
+        # - sudo minikube start \
+        #     --network-plugin=cni \
+        #     --enable-default-cni \
+        #     --container-runtime=cri-o \
+        #     --bootstrapper=kubeadm
+        #use the extended version
+        - docker pull gcr.io/k8s-minikube/kicbase:v0.0.10
+        # - minikube start \
+        #         --network-plugin=cni \
+        #         --enable-default-cni \
+        #         --extra-config=kubelet.container-runtime=remote \
+        #         --extra-config=kubelet.container-runtime-endpoint=/var/run/crio.sock \
+        #         --extra-config=kubelet.image-service-endpoint=/var/run/crio.sock \
+        #         --bootstrapper=kubeadm
+        # - |
+        #   sudo minikube start \
+        #   --network-plugin=cni \
+        #   --enable-default-cni \
+        #   --extra-config=kubelet.container-runtime=remote \
+        #   --extra-config=kubelet.container-runtime-endpoint=/var/run/crio.sock \
+        #   --extra-config=kubelet.image-service-endpoint=/var/run/crio.sock \
+        #   --driver=podman
+        # - minikube start --driver=podman --container-runtime=cri-o #Start a cluster using the podman driver
+
       after_success:
         - deactivate
+
 
 #   # =============================================macOS=============================================
 
-    # need a supported Virtual Machine environment, such as VirtualBox or QEMU.  QEMU+KVM
-    #https://github.com/boot2podman/machine
-    #https://developers.redhat.com/blog/2020/02/12/podman-for-macos-sort-of/
-    - name: "podman-machine podman virtualbox Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
-      os: osx
-      osx_image: xcode11.5
-      language: shell
-      addons:
-        homebrew:
-          packages:
-            # - kubectl #kubernetes-cli 1.18.3
-            # - minikube #minikube 1.11.0
-          casks: # Installing Casks
-            - podman
-          update: true
-      before_install:
-        - pip install virtualenv
-        - virtualenv -p $(which python2) ~venvpy2
-        - source ~venvpy2/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        - |
-          curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && \
-          chmod +x /usr/local/bin/docker-machine
-        # - podman-machine create --virtualbox-boot2podman-url https://github.com/snowjet/boot2podman-fedora-iso/releases/download/d1bb19f/boot2podman-fedora.iso --virtualbox-memory="4096" --virtualbox-share-folder ~/Code:code fedbox
-        # - podman-machine ssh fedbox
-        # - podman-machine ssh fedbox
-        # - podman run -p 8080:80/tcp --rm httpd
-        # - podman-machine ip fedbox #In another terminal
-        # - curl http://192.168.99.122:8080 #In another terminal
-        # - podman-machine stop fedbox
-        # - podman-machine rm fedbox
-      after_success:
-        - deactivate
-
-    - name: "podman Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
-      os: osx
-      osx_image: xcode11.5
-      language: shell
-      addons:
-        homebrew:
-          packages:
-            # - kubectl #kubernetes-cli 1.18.3
-            # - minikube #minikube 1.11.0
-          casks: # Installing Casks
-            - podman
-          update: true
-      before_install:
-        - pip install virtualenv
-        - virtualenv -p $(which python2) ~venvpy2
-        - source ~venvpy2/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        - podman pull centos:8
-        - podman run --rm centos:8 uname -a
-        - podman run --rm ubuntu /bin/echo "Hola podman"  #run a simple container using Ubuntu image which prints a message
-        # - podman run -it fedora bash
-        # - podman run -p 8080:80/tcp --rm httpd
-      after_success:
-        - deactivate
-
-    - name: "podman kubectl k8s Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
+    - name: "podman(no support) minikube kubectl Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
       os: osx
       osx_image: xcode11.5
       language: shell
@@ -256,7 +254,7 @@ matrix:
         homebrew:
           packages:
             - kubectl #kubernetes-cli 1.18.3
-            # - minikube #minikube 1.11.0
+            - minikube #minikube 1.11.0
           casks: # Installing Casks
             - podman
           update: true
@@ -267,24 +265,77 @@ matrix:
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
       script:
-        - podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
-        - podman ps #
-        - curl http://localhost:8000
-        - podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
-        - kubectl create -f demo.yml #Podman to generate a service file
-        - kubectl get pods
-        - kubectl get svc
-        - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
+        - kubectl version --client
+        - minikube version
+        - brew cat kubectl
+        - brew cat minikube
+        - brew home kubectl
+        - brew home minikube
+        - brew info kubectl
+        - brew info minikube
+        # - brew doctor #Check system for potential problems
+        - brew update #Update brew and cask
+        - brew cask upgrade
+        - brew cask info podman
+        # - podman info #No output has been received in the last 10m0s, this potentially indicates a stalled build or something wrong with the build itself
+        # - "podman build ."
+        # - podman images #lists all the images
+        # - podman run  -p 80:80 -dit centos
+        # - podman ps -a
+        # - minikube config set driver podman #make docker the default driver
+        # - minikube start --driver=podman #Start a cluster using the podman driver
       after_success:
+        - brew uninstall kubectl minikube
+        - brew cleanup kubectl minikube
+        - brew cask uninstall --force podman
         - deactivate
 
+    - name: "podman(no support) CRI-O container runtime minikube kubectl Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
+      os: osx
+      osx_image: xcode11.5
+      language: shell
+      addons:
+        homebrew:
+          packages:
+            - kubectl
+            - minikube
+          casks: # Installing Casks
+            - podman
+          update: true
+      before_install:
+        - pip install virtualenv
+        - virtualenv -p $(which python2) ~venvpy2
+        - source ~venvpy2/bin/activate
+      <<: *fleet_install_tasks
+      <<: *fleet_script_tasks
+      script:
+        - kubectl version --client
+        - brew cat kubectl
+        - brew cat minikube
+        - brew home kubectl
+        - brew home minikube
+        - brew info kubectl
+        - brew info minikube
+        # - brew doctor #Check system for potential problems
+        - brew update #Update brew and cask
+        - brew cask upgrade
+        - brew cask info podman
+        # - podman info #No output has been received in the last 10m0s, this potentially indicates a stalled build or something wrong with the build itself
+        # - "podman build ."
+        # - podman images #lists all the images
+        # - podman run  -p 80:80 -dit centos
+        # - podman ps -a
+        # - minikube config set driver podman #make docker the default driver
+        # - minikube start --driver=podman --container-runtime=cri-o #Start a cluster using the podman driver
+      after_success:
+        - brew uninstall kubectl minikube
+        - brew cleanup kubectl minikube
+        - brew cask uninstall --force podman
+        - deactivate
 
-#   # =============================================windows=============================================
+ # =============================================windows=============================================
 
-    #https://github.com/docker/machine/releases
-    #https://docs.travis-ci.com/user/reference/windows/#chocolatey
-    #https://github.com/boot2podman/podman-machine-driver-libvirt
-    - name: "podman-machine  Python 3.8 on Windows"
+    - name: "podman(no support) kubectl minikube Python 3.8 on Windows"
       os: windows
       language: shell
       env:
@@ -297,10 +348,22 @@ matrix:
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
       script:
-        # travisci git bash support
-        - |
-          if [[ ! -d "$HOME/bin" ]]; then mkdir -p "$HOME/bin"; fi && \
-          curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-Windows-x86_64.exe > "$HOME/bin/docker-machine.exe" && \
-          chmod +x "$HOME/bin/docker-machine.exe"
+        - choco install kubernetes-cli
+        - choco install minikube
+        # - minikube start --driver=none # The driver 'none' is not supported on windows
+        # - minikube status
+        - kubectl version --client
+        # - set USERPROFILE #query the value of %USERPROFILE%
+        # - set #see all currently defined environment variables    #USERPROFILE='C:\Users\travis'
+        - echo cd %USERPROFILE% #when debugging a command
+        - echo %cd% #print current path
+        - echo mkdir %USERPROFILE%\.kube
+        - mkdir %USERPROFILE%\.kube
+        - echo cd %USERPROFILE%\.kube
+        - cd %USERPROFILE%\.kube
+        # - mkdir .kube
+        # - cd .kube
+        - cd #print current path
+        # - New-Item config -type file #Configure kubectl to use a remote Kubernetes cluster:
       after_success:
         - deactivate
