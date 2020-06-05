@@ -45,7 +45,7 @@ matrix:
         - sudo apt-get -qqy install podman slirp4netns
         - podman info #his command displays the information related to the host such as the Kernel version, swap space used
         - "podman build ." # build local image
-        - podman run  -p 80:80 -dit centos
+        - sudo podman run  -p 80:80 -dit centos
         - podman info --debug
         - podman ps -a
         - podman pull alpine #Pull Alpine docker image
@@ -145,10 +145,10 @@ matrix:
         - sudo podman ps #
         - curl http://localhost:8000
         - sudo podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
-        - sudo kubectl create -f demo.yml #Podman to generate a service file
+        # - sudo kubectl create -f demo.yml #Podman to generate a service file
         - sudo kubectl get pods
         - sudo kubectl get svc
-        - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
+        # - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
       after_success:
         - deactivate
 
@@ -240,9 +240,10 @@ matrix:
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
       script:
-        - podman pull centos:8
-        - podman run --rm centos:8 uname -a
-        - podman run --rm ubuntu /bin/echo "Hola podman"  #run a simple container using Ubuntu image which prints a message
+        - brew cask info podman
+        # - podman pull centos:8
+        # - podman run --rm centos:8 uname -a
+        # - podman run --rm ubuntu /bin/echo "Hola podman"  #run a simple container using Ubuntu image which prints a message
         # - podman run -it fedora bash
         # - podman run -p 8080:80/tcp --rm httpd
       after_success:
@@ -267,14 +268,15 @@ matrix:
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
       script:
-        - podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
-        - podman ps #
-        - curl http://localhost:8000
-        - podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
-        - kubectl create -f demo.yml #Podman to generate a service file
-        - kubectl get pods
-        - kubectl get svc
-        - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
+        - brew cask info podman
+        # - podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
+        # - podman ps #
+        # - curl http://localhost:8000
+        # - podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
+        # - kubectl create -f demo.yml #Podman to generate a service file
+        # - kubectl get pods
+        # - kubectl get svc
+        # - curl http://192.168.122.123:31393 #check the results and see if “podman rulez.”
       after_success:
         - deactivate
 
