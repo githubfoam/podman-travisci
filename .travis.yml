@@ -144,7 +144,7 @@ matrix:
         - sudo podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
         - sudo podman ps #
         - curl http://localhost:8000
-        - sudo podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
+        # - sudo podman generate kube demo  > demo.yml #perform the snapshot of the container which will generate Kubernetes YAML
         # - sudo kubectl create -f demo.yml #Podman to generate a service file
         - sudo kubectl get pods
         - sudo kubectl get svc
@@ -176,10 +176,10 @@ matrix:
           sudo chmod +x /tmp/docker-machine && \
           sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
         #/home/travis/.travis/functions: line 109: /usr/local/bin/docker-machine-driver-kvm: Permission denied
-        - | # download the docker-machine-driver-kvm binary, putting it in your PATH
-          curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 > /usr/local/bin/docker-machine-driver-kvm \
-          chmod +x /usr/bin/docker-machine-driver-kvm
-        - docker-machine create -d kvm machine01
+        # - | # download the docker-machine-driver-kvm binary, putting it in your PATH
+        #   curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 > /usr/local/bin/docker-machine-driver-kvm \
+        #   chmod +x /usr/local/bin/docker-machine-driver-kvm
+        # - docker-machine create -d kvm machine01
       after_success:
         - deactivate
 
