@@ -16,13 +16,13 @@ fleet_script_usernetes_containerd_tasks : &fleet_script_usernetes_containerd_tas
         #install.sh installs Usernetes systemd units to $HOME/.config/systemd/unit
         #use containerd as the CRI runtime (default):
         # - ./install.sh --cri=containerd
-        - sudo sh -c "./install.sh --cri=containerd"
-        - export KUBECONFIG="$HOME/.config/usernetes/master/admin-localhost.kubeconfig" #enable CoreDNS
-        - sudo kubectl apply -f manifests/*.yaml
-        - kubectl get nodes -o wide
-        - ./uninstall.sh
-        - ./show-cleanup-command.sh
-        - eval $(./show-cleanup-command.sh)
+        # - sudo sh -c "./install.sh --cri=containerd" #Failed to connect to bus: Operation not permitted
+        # - export KUBECONFIG="$HOME/.config/usernetes/master/admin-localhost.kubeconfig" #enable CoreDNS
+        # - sudo kubectl apply -f manifests/*.yaml
+        # - kubectl get nodes -o wide
+        # - ./uninstall.sh
+        # - ./show-cleanup-command.sh
+        # - eval $(./show-cleanup-command.sh)
 
 fleet_script_usernetes_crio_tasks : &fleet_script_usernetes_crio_tasks
       script:
@@ -32,13 +32,13 @@ fleet_script_usernetes_crio_tasks : &fleet_script_usernetes_crio_tasks
         #install.sh installs Usernetes systemd units to $HOME/.config/systemd/unit
         #use containerd as the CRI runtime (default):
         # - ./install.sh --cri=crio
-        - sudo sh -c "./install.sh --cri=crio"
-        - export KUBECONFIG="$HOME/.config/usernetes/master/admin-localhost.kubeconfig" #enable CoreDNS
-        - sudo kubectl apply -f manifests/*.yaml
-        - kubectl get nodes -o wide
-        - ./uninstall.sh
-        - ./show-cleanup-command.sh
-        - eval $(./show-cleanup-command.sh)
+        # - sudo sh -c "./install.sh --cri=crio"
+        # - export KUBECONFIG="$HOME/.config/usernetes/master/admin-localhost.kubeconfig" #enable CoreDNS
+        # - sudo kubectl apply -f manifests/*.yaml
+        # - kubectl get nodes -o wide
+        # - ./uninstall.sh
+        # - ./show-cleanup-command.sh
+        # - eval $(./show-cleanup-command.sh)
 
 
 fleet_script_usernetesindocker_tasks : &fleet_script_usernetesindocker_tasks
@@ -52,10 +52,10 @@ fleet_script_usernetesindocker_tasks : &fleet_script_usernetesindocker_tasks
         # containerd runtimes?
         - sudo docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=containerd
         # -  docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=crio??
-        - sudo docker cp usernetes-node:/home/user/.config/usernetes/master/admin-localhost.kubeconfig docker.kubeconfig
-        - export KUBECONFIG=./docker.kubeconfig
-        - kubectl apply -f manifests/*.yaml
-        - kubectl get nodes -o wide
+        # - sudo docker cp usernetes-node:/home/user/.config/usernetes/master/admin-localhost.kubeconfig docker.kubeconfig
+        # - export KUBECONFIG=./docker.kubeconfig
+        # - kubectl apply -f manifests/*.yaml
+        # - kubectl get nodes -o wide
         # - kubectl run -it --rm --image busybox foo && uname -a && exit
 
 fleet_script_usernetesindocker_dockercompose_tasks : &fleet_script_usernetesindocker_dockercompose_tasks
@@ -80,7 +80,8 @@ fleet_script_rootless_tasks : &fleet_script_rootless_tasks
         # - go get github.com/rootless-containers/rootlesskit/cmd/rootlesskit
         # - go get github.com/rootless-containers/rootlesskit/cmd/rootlessctl
         - git clone https://github.com/rootless-containers/rootlesskit.git
-        - cd rootlesskit && make
+        - cd rootlesskit && ls -lai
+        # - make
 fleet_script_fakeroot_tasks : &fleet_script_fakeroot_tasks
       script:
         - sudo apt-get install -qqy fakeroot
