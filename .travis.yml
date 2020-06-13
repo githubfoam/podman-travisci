@@ -49,12 +49,12 @@ fleet_script_usernetesindocker_tasks : &fleet_script_usernetesindocker_tasks
         #Single node The image is based on Fedora
         # containerd runtimes?
         -  docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=containerd
-        # -  docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=crio
-        - docker cp usernetes-node:/home/user/.config/usernetes/master/admin-localhost.kubeconfig docker.kubeconfig
-        - export KUBECONFIG=./docker.kubeconfig
-        - kubectl apply -f manifests/*.yaml
-        - kubectl get nodes -o wide
-        - kubectl run -it --rm --image busybox foo && uname -a && exit
+        # -  docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=crio??
+        # - docker cp usernetes-node:/home/user/.config/usernetes/master/admin-localhost.kubeconfig docker.kubeconfig
+        # - export KUBECONFIG=./docker.kubeconfig
+        # - kubectl apply -f manifests/*.yaml
+        # - kubectl get nodes -o wide
+        # - kubectl run -it --rm --image busybox foo && uname -a && exit
 
 fleet_script_usernetesindocker_dockercompose_tasks : &fleet_script_usernetesindocker_dockercompose_tasks
       script:
@@ -78,7 +78,7 @@ fleet_script_rootless_tasks : &fleet_script_rootless_tasks
         # - go get github.com/rootless-containers/rootlesskit/cmd/rootlesskit
         # - go get github.com/rootless-containers/rootlesskit/cmd/rootlessctl
         - git clone https://github.com/rootless-containers/rootlesskit.git
-        - make
+        - cd rootlesskit && make
 fleet_script_fakeroot_tasks : &fleet_script_fakeroot_tasks
       script:
         - sudo apt-get install -qqy fakeroot
