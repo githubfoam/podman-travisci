@@ -50,12 +50,12 @@ fleet_script_usernetesindocker_tasks : &fleet_script_usernetesindocker_tasks
         - docker build -t rootlesscontainers/usernetes .
         #Single node The image is based on Fedora
         # containerd runtimes?
-        -  docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=containerd
+        - sudo docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=containerd
         # -  docker run -td --name usernetes-node -p 127.0.0.1:6443:6443 --privileged rootlesscontainers/usernetes --cri=crio??
-        # - docker cp usernetes-node:/home/user/.config/usernetes/master/admin-localhost.kubeconfig docker.kubeconfig
-        # - export KUBECONFIG=./docker.kubeconfig
-        # - kubectl apply -f manifests/*.yaml
-        # - kubectl get nodes -o wide
+        - sudo docker cp usernetes-node:/home/user/.config/usernetes/master/admin-localhost.kubeconfig docker.kubeconfig
+        - export KUBECONFIG=./docker.kubeconfig
+        - kubectl apply -f manifests/*.yaml
+        - kubectl get nodes -o wide
         # - kubectl run -it --rm --image busybox foo && uname -a && exit
 
 fleet_script_usernetesindocker_dockercompose_tasks : &fleet_script_usernetesindocker_dockercompose_tasks
