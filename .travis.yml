@@ -70,10 +70,10 @@ fleet_script_usernetesindocker_dockercompose_tasks : &fleet_script_usernetesindo
         - export KUBECONFIG=$HOME/.config/usernetes/docker-compose.kubeconfig
         - sudo kubectl apply -f manifests/*.yaml
         - kubectl get nodes -o wide
-        - sudo kubectl run --replicas=3 --image=nginx:alpine nginx
+        # - sudo kubectl run --replicas=3 --image=nginx:alpine nginx
         - kubectl get nodes -o wide
-        - sudo kubectl exec -it nginx-6b4b85b77b-7hqrk -- wget -O - http://10.5.79.3
-        - sudo kubectl exec -it nginx-6b4b85b77b-7hqrk -- wget -O - http://10.5.7.3
+        # - sudo kubectl exec -it nginx-6b4b85b77b-7hqrk -- wget -O - http://10.5.79.3
+        # - sudo kubectl exec -it nginx-6b4b85b77b-7hqrk -- wget -O - http://10.5.7.3
 
 fleet_script_rootless_tasks : &fleet_script_rootless_tasks
       script:
