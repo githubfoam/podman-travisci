@@ -8,7 +8,10 @@ notifications:
   slack:
     on_failure: always
 
-
+fleet_script_rootless_tasks : &fleet_script_rootless_tasks
+      script:
+        - go get github.com/rootless-containers/rootlesskit/cmd/rootlesskit
+        - go get github.com/rootless-containers/rootlesskit/cmd/rootlessctl
 fleet_script_tasks : &fleet_script_tasks
       script:
         - python --version
@@ -21,11 +24,8 @@ matrix:
   fast_finish: true
   include:
 
-
-    #Podman - container (experimental)
-    #https://minikube.sigs.k8s.io/docs/drivers/
-    #https://minikube.sigs.k8s.io/docs/drivers/podman/
-    - name: "minikube podman latest  Python 3.7 on bionic amd64" #OK
+    # https://github.com/rootless-containers/rootlesskit#setup
+    - name: "rootless  Python 3.7 on bionic amd64" #OK
       dist: bionic
       addons:
            snaps:
@@ -40,206 +40,7 @@ matrix:
         - source ~venvpy3/bin/activate
       <<: *fleet_install_tasks
       <<: *fleet_script_tasks
-      # <<: *fleet_script_minikube_latest_tasks
-      script:
-        - . /etc/os-release
-        - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
-        - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
-        - sudo apt-get update -qq
-        - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
-        - podman info #his command displays the information related to the host such as the Kernel version, swap space used
-        - "podman build ."
-        - podman images #lists all the images
-        - sudo podman run  -p 80:80 -dit centos
-        - podman ps -a
-        # - podman stop eed30719cd37
-        # - podman rm eed30719cd37
-        # - podman rmi 785188cd988c
-        - podman pod list #The pod create command creates a pod with an infra container by default associated with it unless explicitly set with infra flag as false.
-        # - podman pod create --infra = false #Error: `podman pod create` takes no arguments
-        - podman pod list
-        - snap info --verbose minikube
-        - minikube version #minikube version: v0.8.0
-        # - minikube start --driver=podman #unknown flag: --driver
-        # - minikube start  vm-driver=podman
-        # - minikube config set driver podman #unknown command "config" for "minikube"
-      after_success:
-        - deactivate
-
-    #Podman - container (experimental)
-    #https://minikube.sigs.k8s.io/docs/drivers/
-    #https://minikube.sigs.k8s.io/docs/drivers/podman/
-    # https://kubernetes.io/docs/setup/learning-environment/minikube/
-    #https://kubernetes.io/docs/tasks/tools/install-minikube/
-    #https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux
-    - name: "minikube podman  containerd as the container runtime,  Python 3.7 on bionic amd64"
-      dist: bionic
-      addons:
-           snaps:
-             - name: minikube
-               confinement: strict
-               channel: stable
-      language: python
-      python: 3.7
-      before_install:
-        - pip3 install virtualenv
-        - virtualenv -p $(which python3) ~venvpy3
-        - source ~venvpy3/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      # <<: *fleet_script_minikube_latest_tasks
-      script:
-        - | #To check if virtualization is supported on Linux, run the following command and verify that the output is non-empty:
-            set -eo pipefail #safety for script
-            if [[ $(egrep -c '(vmx|svm)' /proc/cpuinfo) == 0 ]]; then #check if virtualization is supported on Linux, xenial fails w 0, bionic works w 2
-                     echo "virtualization is not supported"
-            else
-                  echo "===================================="
-                  echo eval "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" 2>/dev/null
-                  echo "===================================="
-                  echo "virtualization is supported"
-            fi
-        - |
-          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
-          chmod +x ./kubectl && \
-          sudo mv ./kubectl /usr/local/bin/kubectl &&
-          kubectl version --client
-        - | #Install Minikube via direct download,add the Minikube executable to the path
-          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && \
-          chmod +x minikube && \
-          sudo mkdir -p /usr/local/bin/ && \
-          sudo install minikube /usr/local/bin/
-        # Install podman
-        - . /etc/os-release
-        - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
-        - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
-        - sudo apt-get update -qq
-        - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
-        - podman info #his command displays the information related to the host such as the Kernel version, swap space used
-        - "podman build ."
-        - podman images #lists all the images
-        - sudo podman run  -p 80:80 -dit centos
-        - podman ps -a
-        # - podman stop eed30719cd37
-        # - podman rm eed30719cd37
-        # - podman rmi 785188cd988c
-        - podman pod list #The pod create command creates a pod with an infra container by default associated with it unless explicitly set with infra flag as false.
-        # - podman pod create --infra = false #Error: `podman pod create` takes no arguments
-        - podman pod list
-        - snap info --verbose minikube
-        - minikube version #minikube version: v1.11.0
-        # - minikube config set driver podman #unknown command "config" for "minikube"
-        - docker pull gcr.io/k8s-minikube/kicbase:v0.0.10
-        - sudo podman network ls
-        # - | #Starting a cluster on alternative container runtimes, with containerd
-        #   minikube start \
-        #   --network-plugin=cni \
-        #   --enable-default-cni \
-        #   --container-runtime=containerd \
-        #   --bootstrapper=kubeadm
-        #   --driver=podman #--driver=podman: command not found
-        # - | #Starting a cluster on alternative container runtimes,use the extended version with containerd
-        #   minikube start \
-        #   --network-plugin=cni \
-        #   --enable-default-cni \
-        #   --extra-config=kubelet.container-runtime=remote \
-        #   --extra-config=kubelet.container-runtime-endpoint=unix:///run/containerd/containerd.sock \
-        #   --extra-config=kubelet.image-service-endpoint=unix:///run/containerd/containerd.sock \
-        #   --bootstrapper=kubeadm
-        #   --driver=podman
-
-
-      after_success:
-        - deactivate
-
-    #Podman - container (experimental)
-    #https://minikube.sigs.k8s.io/docs/drivers/
-    #https://minikube.sigs.k8s.io/docs/drivers/podman/
-    # https://kubernetes.io/docs/setup/learning-environment/minikube/
-    #https://kubernetes.io/docs/tasks/tools/install-minikube/
-    #https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux
-    - name: "minikube podman  CRI-O as the container runtime,  Python 3.7 on bionic amd64"
-      dist: bionic
-      addons:
-           snaps:
-             - name: minikube
-               confinement: strict
-               channel: stable
-      language: python
-      python: 3.7
-      before_install:
-        - pip3 install virtualenv
-        - virtualenv -p $(which python3) ~venvpy3
-        - source ~venvpy3/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      # <<: *fleet_script_minikube_latest_tasks
-      script:
-        - | #To check if virtualization is supported on Linux, run the following command and verify that the output is non-empty:
-            set -eo pipefail #safety for script
-            if [[ $(egrep -c '(vmx|svm)' /proc/cpuinfo) == 0 ]]; then #check if virtualization is supported on Linux, xenial fails w 0, bionic works w 2
-                     echo "virtualization is not supported"
-            else
-                  echo "===================================="
-                  echo eval "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" 2>/dev/null
-                  echo "===================================="
-                  echo "virtualization is supported"
-            fi
-        - |
-          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
-          chmod +x ./kubectl && \
-          sudo mv ./kubectl /usr/local/bin/kubectl &&
-          kubectl version --client
-        - | #Install Minikube via direct download,add the Minikube executable to the path
-          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && \
-          chmod +x minikube && \
-          sudo mkdir -p /usr/local/bin/ && \
-          sudo install minikube /usr/local/bin/
-        # Install podman
-        - . /etc/os-release
-        - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
-        - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
-        - sudo apt-get update -qq
-        - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
-        - podman info #his command displays the information related to the host such as the Kernel version, swap space used
-        - "podman build ."
-        - podman images #lists all the images
-        - sudo podman run  -p 80:80 -dit centos
-        - podman ps -a
-        # - podman stop eed30719cd37
-        # - podman rm eed30719cd37
-        # - podman rmi 785188cd988c
-        - podman pod list #The pod create command creates a pod with an infra container by default associated with it unless explicitly set with infra flag as false.
-        # - podman pod create --infra = false #Error: `podman pod create` takes no arguments
-        - podman pod list
-        # - snap info --verbose minikube
-        - minikube version #minikube version: v1.11.0
-        # - minikube config set driver podman #unknown command "config" for "minikube"
-        - sudo podman network ls
-        # - sudo minikube start \
-        #     --network-plugin=cni \
-        #     --enable-default-cni \
-        #     --container-runtime=cri-o \
-        #     --bootstrapper=kubeadm
-        #use the extended version
-        - docker pull gcr.io/k8s-minikube/kicbase:v0.0.10
-        # - minikube start \
-        #         --network-plugin=cni \
-        #         --enable-default-cni \
-        #         --extra-config=kubelet.container-runtime=remote \
-        #         --extra-config=kubelet.container-runtime-endpoint=/var/run/crio.sock \
-        #         --extra-config=kubelet.image-service-endpoint=/var/run/crio.sock \
-        #         --bootstrapper=kubeadm
-        # - |
-        #   sudo minikube start \
-        #   --network-plugin=cni \
-        #   --enable-default-cni \
-        #   --extra-config=kubelet.container-runtime=remote \
-        #   --extra-config=kubelet.container-runtime-endpoint=/var/run/crio.sock \
-        #   --extra-config=kubelet.image-service-endpoint=/var/run/crio.sock \
-        #   --driver=podman
-        # - minikube start --driver=podman --container-runtime=cri-o #Start a cluster using the podman driver
-
+      <<: *fleet_script_rootless_tasks
       after_success:
         - deactivate
 
