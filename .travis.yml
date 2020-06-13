@@ -142,9 +142,9 @@ matrix:
       dist: bionic
       addons:
            snaps:
-             - name: minikube
-               confinement: strict
-               channel: stable
+             - name: kubectl
+               confinement: classic
+               channel: latest/stable
       language: python
       python: 3.7
       before_install:
@@ -162,9 +162,9 @@ matrix:
       dist: bionic
       addons:
            snaps:
-             - name: minikube
-               confinement: strict
-               channel: stable
+             - name: kubectl
+               confinement: classic
+               channel: latest/stable
       language: python
       python: 3.7
       before_install:
