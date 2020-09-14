@@ -3,34 +3,46 @@
 Travis (.com)  branch:
 [![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=master)](https://travis-ci.com/githubfoam/podman-travisci)  
 
+Travis (.com)  branch:
+[![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=feature_kubernetes)](https://travis-ci.com/githubfoam/podman-travisci) 
+
 ~~~~
-The podman driver is another kubernetes in container driver for minikube. similar to docker driver.
-The podman driver is experimental, and only supported on Linux and macOS (with a remote podman server).
+Linux-native "fake root" for rootless containers
+https://github.com/rootless-containers/rootlesskit
 
-https://minikube.sigs.k8s.io/docs/drivers/podman/
-
-Linux
-Docker - container-based (preferred)
-KVM2 - VM-based (preferred)
-VirtualBox - VM
-None - bare-metal
-Podman - container (experimental)
-https://minikube.sigs.k8s.io/docs/drivers/
-
-Podman is a daemonless container engine for developing, managing, and running OCI Containers on your Linux System. Containers can either be run as root or in rootless mode
-https://podman.io/getting-started/installation.html
-
-Buildah - a tool that facilitates building OCI container images.
-https://buildah.io/
+Projects using RootlessKit
+Container engines:
+  Podman
+Container image builders:
+  BuildKit
+Kubernetes distributions:
+    Usernetes: Docker & Kubernetes, installable under a non-root user's $HOME.
+    k3s: Lightweight Kubernetes
 
 
-Podman Machine and Boot2podman
-https://podman.io/blogs/2019/01/14/podman-machine-and-boot2podman.html
+~~~~
 
-Machine lets you create Podman hosts on your computer. It creates servers with Podman on them, then configures the Podman client to talk to them.
-https://github.com/boot2podman/machine
+~~~~
+Kubernetes installable under $HOME, without the root privileges
+https://github.com/rootless-containers/usernetes
+~~~~
+~~~~
+concurrent, cache-efficient, and Dockerfile-agnostic builder toolkit
+Kubernetes deployments
+Daemonless
+To run client and an ephemeral daemon in a single container ("daemonless mode")
 
-skopeo is a command line utility that performs various operations on container images and image repositories.
-skopeo does not require the user to be running as root to do most of its operations.
-https://github.com/containers/skopeo
+Running BuildKit without root privileges
+
+Building multi-platform images
+https://github.com/moby/buildkit
+~~~~
+~~~~
+BuildKit is used by the following projects:
+A simple build tool on top of buildkit for building images in a different way.
+https://github.com/stellarproject/vab
+Rio is an Application Deployment Engine for Kubernetes that can be layered on top of any standard Kubernetes cluster.
+https://github.com/rancher/rio
+Standalone, daemon-less, unprivileged Dockerfile and OCI compatible container image builder.
+https://github.com/genuinetools/img
 ~~~~
