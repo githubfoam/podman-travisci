@@ -3,6 +3,24 @@
 Travis (.com)  branch:
 [![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=master)](https://travis-ci.com/githubfoam/podman-travisci)  
 
+Travis (.com) windows branch:
+[![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=feature_windows)](https://travis-ci.com/githubfoam/podman-travisci) 
+
+Travis (.com) macos branch:
+[![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=feature_macos)](https://travis-ci.com/githubfoam/podman-travisci) 
+
+Travis (.com) kvm qemu branch:
+[![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=feature_kvm)](https://travis-ci.com/githubfoam/podman-travisci) 
+
+Travis (.com) kubernetes branch:
+[![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=feature_kubernetes)](https://travis-ci.com/githubfoam/podman-travisci) 
+
+Travis (.com) minikube branch:
+[![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=feature_kubernetes)](https://travis-ci.com/githubfoam/podman-travisci)
+
+Travis (.com) rootless branch:
+[![Build Status](https://travis-ci.com/githubfoam/podman-travisci.svg?branch=rootless)](https://travis-ci.com/githubfoam/podman-travisci) 
+
 ~~~~
 The podman driver is another kubernetes in container driver for minikube. similar to docker driver.
 The podman driver is experimental, and only supported on Linux and macOS (with a remote podman server).
