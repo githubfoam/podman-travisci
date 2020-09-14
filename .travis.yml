@@ -10,12 +10,12 @@ notifications:
     on_failure: always
 
 
-fleet_script_tasks : &fleet_script_tasks
-      script:
-        - python --version
-fleet_install_tasks : &fleet_install_tasks
-      install:
-        - pip install -r requirements.txt
+# fleet_script_tasks : &fleet_script_tasks
+#       script:
+#         - python --version
+# fleet_install_tasks : &fleet_install_tasks
+#       install:
+#         - pip install -r requirements.txt
 
 
 matrix:
@@ -30,8 +30,10 @@ matrix:
         - pip3 install virtualenv
         - virtualenv -p $(which python3) ~venvpy3
         - source ~venvpy3/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
+        - python --version
+        - pip install -r requirements.txt                
+      # <<: *fleet_install_tasks
+      # <<: *fleet_script_tasks
       script:
         - . /etc/os-release
         - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
@@ -65,154 +67,154 @@ matrix:
       after_success:
         - deactivate
 
-    - name: "podman kubectl k8s Python 3.7 on bionic amd64" #OK
-      dist: bionic
-      language: python
-      python: 3.7
-      before_install:
-        - pip3 install virtualenv
-        - virtualenv -p $(which python3) ~venvpy3
-        - source ~venvpy3/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        - | #To check if virtualization is supported on Linux, run the following command and verify that the output is non-empty:
-            set -eo pipefail #safety for script
-            if [[ $(egrep -c '(vmx|svm)' /proc/cpuinfo) == 0 ]]; then #check if virtualization is supported on Linux, xenial fails w 0, bionic works w 2
-                     echo "virtualization is not supported"
-            else
-                  echo "===================================="
-                  echo eval "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" 2>/dev/null
-                  echo "===================================="
-                  echo "virtualization is supported"
-            fi
-        - | # Install kubectl
-          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
-          chmod +x ./kubectl && \
-          sudo mv ./kubectl /usr/local/bin/kubectl &&
-          kubectl version --client
-        # Install podman
-        - . /etc/os-release
-        - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
-        - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
-        - sudo apt-get update -qq
-        - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
-        - sudo podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
-        - sudo podman ps #
-        - curl http://localhost:8000
-      after_success:
-        - deactivate
+#     - name: "podman kubectl k8s Python 3.7 on bionic amd64" #OK
+#       dist: bionic
+#       language: python
+#       python: 3.7
+#       before_install:
+#         - pip3 install virtualenv
+#         - virtualenv -p $(which python3) ~venvpy3
+#         - source ~venvpy3/bin/activate
+#       <<: *fleet_install_tasks
+#       <<: *fleet_script_tasks
+#       script:
+#         - | #To check if virtualization is supported on Linux, run the following command and verify that the output is non-empty:
+#             set -eo pipefail #safety for script
+#             if [[ $(egrep -c '(vmx|svm)' /proc/cpuinfo) == 0 ]]; then #check if virtualization is supported on Linux, xenial fails w 0, bionic works w 2
+#                      echo "virtualization is not supported"
+#             else
+#                   echo "===================================="
+#                   echo eval "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" 2>/dev/null
+#                   echo "===================================="
+#                   echo "virtualization is supported"
+#             fi
+#         - | # Install kubectl
+#           curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
+#           chmod +x ./kubectl && \
+#           sudo mv ./kubectl /usr/local/bin/kubectl &&
+#           kubectl version --client
+#         # Install podman
+#         - . /etc/os-release
+#         - sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
+#         - curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
+#         - sudo apt-get update -qq
+#         - sudo apt-get -qqy install podman slirp4netns #https://github.com/rootless-containers/slirp4netns
+#         - sudo podman run -dt -p 8000:80 --name demo quay.io/libpod/alpine_nginx:latest #create a simple Podman container running nginx and binding the host’s port 8000 to the container’s port 80
+#         - sudo podman ps #
+#         - curl http://localhost:8000
+#       after_success:
+#         - deactivate
 
 
-    - name: "podman machine qemu kvm libvirt Python 3.7 on xenial amd64" #OK
-      dist: xenial
-      language: python
-      python: 3.7
-      before_install:
-        - pip3 install virtualenv
-        - virtualenv -p $(which python3) ~venvpy3
-        - source ~venvpy3/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        - sudo apt-get install -qqy libvirt-bin qemu-kvm #Install libvirt and qemu-kvm
-        #Install docker-machine
-        - |
-          curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/tmp/docker-machine && \
-          sudo chmod +x /tmp/docker-machine && \
-          sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
-      after_success:
-        - deactivate
+#     - name: "podman machine qemu kvm libvirt Python 3.7 on xenial amd64" #OK
+#       dist: xenial
+#       language: python
+#       python: 3.7
+#       before_install:
+#         - pip3 install virtualenv
+#         - virtualenv -p $(which python3) ~venvpy3
+#         - source ~venvpy3/bin/activate
+#       <<: *fleet_install_tasks
+#       <<: *fleet_script_tasks
+#       script:
+#         - sudo apt-get install -qqy libvirt-bin qemu-kvm #Install libvirt and qemu-kvm
+#         #Install docker-machine
+#         - |
+#           curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/tmp/docker-machine && \
+#           sudo chmod +x /tmp/docker-machine && \
+#           sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
+#       after_success:
+#         - deactivate
 
-#   # =============================================macOS=============================================
+# #   # =============================================macOS=============================================
 
-    - name: "podman-machine podman virtualbox Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
-      os: osx
-      osx_image: xcode11.5
-      language: shell
-      addons:
-        homebrew:
-          packages:
-          casks: # Installing Casks
-            - podman
-          update: true
-      before_install:
-        - pip install virtualenv
-        - virtualenv -p $(which python2) ~venvpy2
-        - source ~venvpy2/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        - |
-          curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && \
-          chmod +x /usr/local/bin/docker-machine
-      after_success:
-        - deactivate
+#     - name: "podman-machine podman virtualbox Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
+#       os: osx
+#       osx_image: xcode11.5
+#       language: shell
+#       addons:
+#         homebrew:
+#           packages:
+#           casks: # Installing Casks
+#             - podman
+#           update: true
+#       before_install:
+#         - pip install virtualenv
+#         - virtualenv -p $(which python2) ~venvpy2
+#         - source ~venvpy2/bin/activate
+#       <<: *fleet_install_tasks
+#       <<: *fleet_script_tasks
+#       script:
+#         - |
+#           curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && \
+#           chmod +x /usr/local/bin/docker-machine
+#       after_success:
+#         - deactivate
 
-    - name: "podman Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
-      os: osx
-      osx_image: xcode11.5
-      language: shell
-      addons:
-        homebrew:
-          packages:
-          casks: # Installing Casks
-            - podman
-          update: true
-      before_install:
-        - pip install virtualenv
-        - virtualenv -p $(which python2) ~venvpy2
-        - source ~venvpy2/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        - brew cask info podman
-      after_success:
-        - deactivate
+#     - name: "podman Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
+#       os: osx
+#       osx_image: xcode11.5
+#       language: shell
+#       addons:
+#         homebrew:
+#           packages:
+#           casks: # Installing Casks
+#             - podman
+#           update: true
+#       before_install:
+#         - pip install virtualenv
+#         - virtualenv -p $(which python2) ~venvpy2
+#         - source ~venvpy2/bin/activate
+#       <<: *fleet_install_tasks
+#       <<: *fleet_script_tasks
+#       script:
+#         - brew cask info podman
+#       after_success:
+#         - deactivate
 
-    - name: "podman kubectl k8s Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
-      os: osx
-      osx_image: xcode11.5
-      language: shell
-      addons:
-        homebrew:
-          packages:
-            - kubectl #kubernetes-cli 1.18.3
-          casks: # Installing Casks
-            - podman
-          update: true
-      before_install:
-        - pip install virtualenv
-        - virtualenv -p $(which python2) ~venvpy2
-        - source ~venvpy2/bin/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        - brew cask info podman
-      after_success:
-        - deactivate
-
-
-# =============================================windows=============================================
+#     - name: "podman kubectl k8s Python 2.7.17 on macOS 10.15.4 osx xcode11.5"
+#       os: osx
+#       osx_image: xcode11.5
+#       language: shell
+#       addons:
+#         homebrew:
+#           packages:
+#             - kubectl #kubernetes-cli 1.18.3
+#           casks: # Installing Casks
+#             - podman
+#           update: true
+#       before_install:
+#         - pip install virtualenv
+#         - virtualenv -p $(which python2) ~venvpy2
+#         - source ~venvpy2/bin/activate
+#       <<: *fleet_install_tasks
+#       <<: *fleet_script_tasks
+#       script:
+#         - brew cask info podman
+#       after_success:
+#         - deactivate
 
 
-    - name: "podman-machine  Python 3.8 on Windows"
-      os: windows
-      language: shell
-      env:
-        - PATH=/c/Python38:/c/Python38/Scripts:$PATH
-      before_install:
-        - choco install python --version 3.8.1
-        - pip install virtualenv
-        - virtualenv $HOME/venv
-        - source $HOME/venv/Scripts/activate
-      <<: *fleet_install_tasks
-      <<: *fleet_script_tasks
-      script:
-        # travisci git bash support
-        - |
-          if [[ ! -d "$HOME/bin" ]]; then mkdir -p "$HOME/bin"; fi && \
-          curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-Windows-x86_64.exe > "$HOME/bin/docker-machine.exe" && \
-          chmod +x "$HOME/bin/docker-machine.exe"
-      after_success:
-        - deactivate
+# # =============================================windows=============================================
+
+
+#     - name: "podman-machine  Python 3.8 on Windows"
+#       os: windows
+#       language: shell
+#       env:
+#         - PATH=/c/Python38:/c/Python38/Scripts:$PATH
+#       before_install:
+#         - choco install python --version 3.8.1
+#         - pip install virtualenv
+#         - virtualenv $HOME/venv
+#         - source $HOME/venv/Scripts/activate
+#       <<: *fleet_install_tasks
+#       <<: *fleet_script_tasks
+#       script:
+#         # travisci git bash support
+#         - |
+#           if [[ ! -d "$HOME/bin" ]]; then mkdir -p "$HOME/bin"; fi && \
+#           curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-Windows-x86_64.exe > "$HOME/bin/docker-machine.exe" && \
+#           chmod +x "$HOME/bin/docker-machine.exe"
+#       after_success:
+#         - deactivate
